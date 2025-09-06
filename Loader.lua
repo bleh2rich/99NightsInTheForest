@@ -161,20 +161,79 @@ local function GetSavedKeyIfValid()
     return nil
 end
 
+local function CreateKeySystemUI()
+    local Window = WindUi:CreateWindow({
+        Title = "WattyHub Key System",
+        Description = "Enter your key to access WattyHub",
+        Keybind = MenuKeybind.Key
+    })
+    
+    local Tab = Window:CreateTab({
+        Name = "Key System",
+        Description = "Key verification system"
+    })
+    
+    local TextBox = Tab:CreateInput({
+        Name = "Enter Key",
+        Description = "Paste your key here",
+        PlaceholderText = "32 character key...",
+        Callback = function(Value)
+            if Value and #Value == 32 then
+                local KeyFilePath = WattyhubFolder .. "/" .. PlayerId .. ".key"
+                writefile(KeyFilePath, Value)
+                ExecuteMainScript(Value)
+                Window:Destroy()
+            else
+                WindUi:Notify({ 
+                    Title = "Invalid Key Format", 
+                    Content = "Key must be exactly 32 characters long.", 
+                    Icon = "alert-triangle", 
+                    Duration = 3 
+                })
+            end
+        end
+    })
+    
+    local RegularKeyService = WindUi.Services.luarmor:New(LuarmorRegularScriptId, "https://discord.gg/gd8Vfa5kh5")
+    Tab:CreateButton({
+        Name = "Get Regular Key",
+        Description = "Get a 12-hour regular key",
+        Callback = function()
+            OpenUrl(LuarmorKeyUrl)
+        end
+    })
+    
+    local PremiumKeyService = WindUi.Services.luarmor:New(LuarmorPremiumScriptId, "https://discord.gg/gd8Vfa5kh5")
+    Tab:CreateButton({
+        Name = "Get Premium Key", 
+        Description = "Get a 6-hour premium key",
+        Callback = function()
+            OpenUrl(LuarmorPremiumKeyUrl)
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "Discord Support",
+        Description = "Join our Discord for help",
+        Callback = function()
+            OpenUrl("https://discord.gg/gd8Vfa5kh5")
+        end
+    })
+    
+    Tab:CreateButton({
+        Name = "YouTube Tutorial",
+        Description = "Watch how to get a key",
+        Callback = function()
+            OpenUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        end
+    })
+end
+
 local SavedKey = GetSavedKeyIfValid()
 local HasValidKey = (SavedKey ~= nil)
 
 if HasValidKey then
     ExecuteMainScript(SavedKey)
 else
-    local KeyFilePath = WattyhubFolder .. "/" .. PlayerId .. ".key"
-    while not isfile(KeyFilePath) do
-        wait(1)
-    end
-    local NewKey = readfile(KeyFilePath)
-    if NewKey and #NewKey == 32 then
-        ExecuteMainScript(NewKey)
-    else
-        WindUi:Notify({ Title = "Error", Content = "Failed to read the newly saved key.", Duration = 5, Icon = "alert-triangle" })
-    end
+    CreateKeySystemUI()
 end
